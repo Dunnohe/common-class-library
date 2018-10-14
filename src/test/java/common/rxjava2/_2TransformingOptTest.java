@@ -1,16 +1,32 @@
 package common.rxjava2;
 
+import com.google.common.collect.Lists;
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
+import io.reactivex.Scheduler;
 import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.observables.GroupedObservable;
+import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author: linhu
@@ -40,7 +56,7 @@ public class _2TransformingOptTest {
         // 2.buffer(count,skip)
         // 作用是将 Observable 中的数据按 skip (步长) 分成最大不超过 count 的 buffer ，然后生成一个  Observable
         Observable.just(1, 2, 3, 4, 5, 6).
-                buffer(3, 2).
+                buffer(4, 1).
                 subscribe(new Consumer<List<Integer>>() {
                     @Override
                     public void accept(List<Integer> integers) throws Exception {
@@ -49,28 +65,33 @@ public class _2TransformingOptTest {
                 });
     }
 
+    public class Student implements Callable<Student> {
+        //姓名
+        private String name;
 
-    /**
-     * FlatMap将一个发射数据的Observable变换为多个Observables，然后将它们发射的数据处理合并后放进一个单独的Observable
-     * 但有个需要注意的是，flatMap 并不能保证事件的顺序，如果需要保证，需要用到ConcatMap。它与FlatMap唯一区别就是保证处理后的顺序
-     */
-    @Test
-    public void testFlatMap() {
-        Observable.just(1, 2, 3, 4, 5, 6).
-                flatMap(new Function<Integer, ObservableSource<String>>() {
-                    @Override
-                    public ObservableSource<String> apply(@NonNull Integer integer) throws Exception {
+        //选修课列表
+        private List<String> courses;
 
-                        String result = "I am " + integer;
-                        return Observable.fromIterable(Arrays.asList(result));
-                    }
-                }).
-                subscribe(new Consumer<String>() {
-                    @Override
-                    public void accept(@NonNull String s) throws Exception {
-                        log.info("test flatMap : value : {}", s);
-                    }
-                });
+        public Student(String name) {
+            this.name = name;
+        }
+
+        public void setCourses(List<String> courses) {
+            this.courses = courses;
+        }
+
+        @Override
+        public String toString() {
+            return "Student{" +
+                    "name='" + name + '\'' +
+                    ", courses=" + courses +
+                    '}';
+        }
+
+        @Override
+        public Student call() throws Exception {
+            return this;
+        }
     }
 
     /**
@@ -78,19 +99,74 @@ public class _2TransformingOptTest {
      */
     @Test
     public void testMap() {
-        Observable.just(1, 2, 3, 4, 5, 6).
-                map(new Function<Integer, Integer>() {
+        Observable.just(new Student("tom"), new Student("jerry"), new Student("jack"))
+                .map(new Function<Student, Student>() {
                     @Override
-                    public Integer apply(Integer integer) throws Exception {
-                        return integer + 1;
+                    public Student apply(Student student) throws Exception {
+                        student.setCourses(Arrays.asList("chinese", "math"));
+                        return student;
                     }
-                }).
-                subscribe(new Consumer<Integer>() {
+                }).subscribe(new Consumer<Student>() {
+            @Override
+            public void accept(Student student) throws Exception {
+                log.info("test Map value:{}", student);
+            }
+        });
+    }
+
+
+
+    /**
+     * FlatMap将一个发射数据的Observable变换为多个Observables，然后将它们发射的数据处理合并后放进一个单独的Observable
+     * 但有个需要注意的是，flatMap 并不能保证事件的顺序，如果需要保证，需要用到ConcatMap。它与FlatMap唯一区别就是保证处理后的顺序
+     * https://www.jianshu.com/p/3e5d53e891db
+     */
+    @Test
+    public void testFlatMap() throws InterruptedException {
+        ExecutorService executorService = new ThreadPoolExecutor(5, 5, 1, TimeUnit.MINUTES, new LinkedBlockingDeque<>());
+
+        Observable.just(new Student("tom"), new Student("jerry"), new Student("jack"))
+                .flatMap(new Function<Student, ObservableSource<Student>>() {
                     @Override
-                    public void accept(Integer integer) throws Exception {
-                        log.info("test Map value:{}", integer);
+                    public ObservableSource<Student> apply(Student student) throws Exception {
+                        return Observable.fromCallable(new Callable<Student>() {
+                            @Override
+                            public Student call() throws Exception {
+                                student.setCourses(Arrays.asList("chinese", "math"));
+                                if(student.name.equals("tom")) {
+                                    for (int i = 0; i < 10000000; i++) {
+
+                                    }
+                                }
+                                return student;
+                            }
+                        }).subscribeOn(Schedulers.from(executorService));
                     }
-                });
+                })
+                .subscribe(new Consumer<Student>() {
+            @Override
+            public void accept(Student strings) throws Exception {
+                log.info("test flatMap : value : {}", strings);
+            }
+        });
+
+
+        //消费异步
+        /*Observable.just(new Student("tom"), new Student("jerry"), new Student("jack"))
+                .flatMap(new Function<Student, ObservableSource<Student>>() {
+                    @Override
+                    public ObservableSource<Student> apply(Student student) throws Exception {
+                        return Observable.just(student);
+
+                    }
+                }).observeOn(Schedulers.from(executorService)).subscribe(new Consumer<Student>() {
+            @Override
+            public void accept(Student strings) throws Exception {
+                log.info("test flatMap : value : {}", strings);
+            }
+        });*/
+
+        Thread.sleep(5000);
     }
 
     /**
@@ -99,8 +175,65 @@ public class _2TransformingOptTest {
     @Test
     public void testGroupBy() {
         Observable.just(1, 2, 3, 4, 5, 6).
-                groupBy(integer -> integer % 2, integer -> "(" + integer + ")").
-                subscribe(group -> group.subscribe(signGroup -> log.info("test group by key:{},values:{}", group.getKey(), signGroup)));
+                groupBy(new Function<Integer, Integer>() {
+                    @Override
+                    public Integer apply(Integer integer) throws Exception {
+                        return integer % 3;
+                    }
+                }, new Function<Integer, String>() {
+                    @Override
+                    public String apply(Integer integer) throws Exception {
+                        return "(" + integer + ")";
+                    }
+                }).
+                subscribe(new Consumer<GroupedObservable<Integer, String>>() {
+                    @Override
+                    public void accept(GroupedObservable<Integer, String> group) throws Exception {
+                        group.subscribe(new Consumer<String>() {
+                            @Override
+                            public void accept(String signGroup) throws Exception {
+                                log.info("test group by key:{},values:{}", group.getKey(), signGroup);
+                            }
+                        });
+                    }
+                });
+
+        Observable.just(1, 2, 3, 4, 5, 6).groupBy(new Function<Integer, Integer>() {
+            @Override
+            public Integer apply(Integer integer) throws Exception {
+                return integer % 3;
+            }
+        }, new Function<Integer, String>() {
+            @Override
+            public String apply(Integer integer) throws Exception {
+                return String.valueOf(integer + "@");
+            }
+        }).subscribe(new Observer<GroupedObservable<Integer, String>>() {
+            @Override
+            public void onSubscribe(Disposable disposable) {
+
+            }
+
+            @Override
+            public void onNext(GroupedObservable<Integer, String> groupedObservable) {
+                groupedObservable.subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) throws Exception {
+                        log.info("key:{} value:{}", groupedObservable.getKey(), s);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
     }
 
     /**
@@ -111,8 +244,9 @@ public class _2TransformingOptTest {
         Observable.just(1, 2, 3, 4, 5, 6).
                 scan(new BiFunction<Integer, Integer, Integer>() {
                     @Override
-                    public Integer apply(Integer integer, Integer integer2) throws Exception {
-                        return integer + integer2;
+                    public Integer apply(Integer output, Integer input) throws Exception {
+                        log.info("上次执行的结果:{}, 本次输入:{}", output, input);
+                        return input + output;
                     }
                 }).
                 subscribe(new Consumer<Integer>() {
