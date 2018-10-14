@@ -21,7 +21,7 @@ public class _1CreateOptTest {
         Observable.create((ObservableOnSubscribe<Integer>) observableEmitter -> {
             try {
                 for (int i = 0; i < 5; i++) {
-                    log.info("sss");
+                    log.info("[test create]sss");
                     observableEmitter.onNext(i);
                 }
                 observableEmitter.onComplete();
