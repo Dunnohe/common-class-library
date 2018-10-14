@@ -87,21 +87,6 @@ public class _1CreateOptTest {
         });
     }
 
-    public class App {
-        private String name;
-
-        public App(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return "App{" +
-                    "name='" + name + '\'' +
-                    '}';
-        }
-    }
-
     /**
      * 创建一个发射指定值的Observable
      */
@@ -130,6 +115,20 @@ public class _1CreateOptTest {
         });
     }
 
+    public class App {
+        private String name;
+
+        public App(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return "App{" +
+                    "name='" + name + '\'' +
+                    '}';
+        }
+    }
 
     private App mApp = new App("微信");
     /**
@@ -205,12 +204,12 @@ public class _1CreateOptTest {
         Observable.empty().subscribe(new Observer<Object>() {
             @Override
             public void onSubscribe(Disposable disposable) {
-
             }
 
             @Override
             public void onNext(Object o) {
                 log.info("consumer data:{}", o);
+                throw new NullPointerException("123");
             }
 
             @Override
@@ -231,15 +230,17 @@ public class _1CreateOptTest {
      */
     @Test
     public void testNever() {
-        Observable.never().subscribe(new Observer<Object>() {
+        Observable.never().
+                subscribe(new Observer<Object>() {
             @Override
             public void onSubscribe(Disposable disposable) {
-
+                log.info("====");
             }
 
             @Override
             public void onNext(Object o) {
                 log.info("consumer data:{}", o);
+                throw new NullPointerException("123");
             }
 
             @Override
