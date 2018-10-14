@@ -4,11 +4,13 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 /**
  * rx java2 所有创建运算符测试
  */
+@Slf4j
 public class _1CreateOptTest {
 
     /**
@@ -19,6 +21,7 @@ public class _1CreateOptTest {
         Observable.create((ObservableOnSubscribe<Integer>) observableEmitter -> {
             try {
                 for (int i = 0; i < 5; i++) {
+                    log.info("sss");
                     observableEmitter.onNext(i);
                 }
                 observableEmitter.onComplete();
