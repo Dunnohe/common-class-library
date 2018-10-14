@@ -1,14 +1,13 @@
 package common.rxjava2;
 
 import io.reactivex.Observable;
-import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 /**
- * @author: linhu@kanzhun.com
+ * @author: linhu
  * @date: 2018/10/14 18:44
  * @description:
  */
