@@ -57,6 +57,19 @@ public class _2TransformingOptTest {
                 });
     }
 
+    /**
+     * Window 定期将来自原始Observable的数据分解为一个Observable窗口，发射这些窗口，而不是每次发射一项数据
+     * 与buffer一样，区别是Window取自Observables对象，但是buffer取得是数据包
+     */
+    @Test
+    public void testWindow() {
+        Observable.just(1, 2, 3, 4, 5, 6).
+                window(3)
+                .subscribe(integerObservable -> {
+                    integerObservable.subscribe(integer -> log.info(integerObservable + "===>" + integer));
+                });
+    }
+
     public class Student implements Callable<Student> {
         //姓名
         private String name;
@@ -266,19 +279,6 @@ public class _2TransformingOptTest {
                     public void accept(Integer integer) throws Exception {
                         log.info("test reduce value:{}", integer);
                     }
-                });
-    }
-
-    /**
-     * Window 定期将来自原始Observable的数据分解为一个Observable窗口，发射这些窗口，而不是每次发射一项数据
-     * 与buffer一样，区别是Window取自Observables对象，但是buffer取得是数据包
-     */
-    @Test
-    public void testWindow() {
-        Observable.just(1, 2, 3, 4, 5, 6).
-                window(3)
-                .subscribe(integerObservable -> {
-                    integerObservable.subscribe(integer -> log.info(integerObservable + "===>" + integer));
                 });
     }
 
