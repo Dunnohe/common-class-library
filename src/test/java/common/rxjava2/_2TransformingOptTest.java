@@ -1,13 +1,8 @@
 package common.rxjava2;
 
-import com.google.common.collect.Lists;
 import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Consumer;
@@ -19,11 +14,8 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +54,19 @@ public class _2TransformingOptTest {
                     public void accept(List<Integer> integers) throws Exception {
                         log.info("test buffer(count,skip) size:{},values:{}", integers.size(), integers);
                     }
+                });
+    }
+
+    /**
+     * Window 定期将来自原始Observable的数据分解为一个Observable窗口，发射这些窗口，而不是每次发射一项数据
+     * 与buffer一样，区别是Window取自Observables对象，但是buffer取得是数据包
+     */
+    @Test
+    public void testWindow() {
+        Observable.just(1, 2, 3, 4, 5, 6).
+                window(3)
+                .subscribe(integerObservable -> {
+                    integerObservable.subscribe(integer -> log.info(integerObservable + "===>" + integer));
                 });
     }
 
@@ -274,19 +279,6 @@ public class _2TransformingOptTest {
                     public void accept(Integer integer) throws Exception {
                         log.info("test reduce value:{}", integer);
                     }
-                });
-    }
-
-    /**
-     * Window 定期将来自原始Observable的数据分解为一个Observable窗口，发射这些窗口，而不是每次发射一项数据
-     * 与buffer一样，区别是Window取自Observables对象，但是buffer取得是数据包
-     */
-    @Test
-    public void testWindow() {
-        Observable.just(1, 2, 3, 4, 5, 6).
-                window(3)
-                .subscribe(integerObservable -> {
-                    integerObservable.subscribe(integer -> log.info(integerObservable + "===>" + integer));
                 });
     }
 
