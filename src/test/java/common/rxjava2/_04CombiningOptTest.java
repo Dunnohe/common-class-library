@@ -1,13 +1,11 @@
 package common.rxjava2;
 
-import com.sun.tools.corba.se.idl.StringGen;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.ObservableSource;
-import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
@@ -84,5 +82,69 @@ public class _04CombiningOptTest {
                 observableEmitter.onNext("B");
             }
         });
+    }
+
+    /**
+     * Merge 合并多个Observables的发射物
+     */
+    @Test
+    public void testMerge() throws InterruptedException {
+        Observable<Long> ob1 = Observable.interval(100, TimeUnit.MILLISECONDS)
+                .take(3)
+                .subscribeOn(Schedulers.newThread());
+        Observable<Long> ob2 = Observable.interval(50, TimeUnit.MILLISECONDS)
+                .take(3)
+                .map(aLong -> aLong + 10)
+                .subscribeOn(Schedulers.newThread());
+
+        Observable.merge(ob1, ob2)
+                .subscribe(o -> log.info("test merge value:{}", o));
+
+        Thread.sleep(5000);
+    }
+
+    /**
+     * StartWith 在数据序列的开头插入一条指定的项
+     * 是concat()的对应部分,在Observable开始发射他们的数据之前,startWith()通过传递一个参数来先发射一个数据序列
+     */
+    @Test
+    public void testStartWith() {
+        Observable.just(1)
+                .startWith(2)
+                .startWith(3)
+                .startWith(Observable.just(4))
+                .startWith(5)
+                .startWithArray(6, 7)
+                .subscribe(s -> log.info("test start with value:{}", s));
+    }
+
+    /**
+     * Switch 将一个发射多个Observables的Observable转换成另一个单独的Observable，后者发射那些Observables最近发射的数据项
+     */
+    @Test
+    public void testSwitch() {
+
+    }
+
+    /**
+     * Zip 通过一个函数将多个Observables的发射物结合到一起，基于这个函数的结果为每个结合体发射单个数据项。
+     * 只有当原始的Observable中的每一个都发射了 一条数据时 zip 才发射数据。接受一到九个参数
+     */
+    @Test
+    public void testZip() throws InterruptedException {
+        Observable<Long> observable1 = Observable.interval(100, TimeUnit.MILLISECONDS)
+                .take(3)
+                .subscribeOn(Schedulers.newThread());
+
+        Observable<Long> observable2 = Observable.interval(200, TimeUnit.MILLISECONDS)
+                .take(4)
+                .subscribeOn(Schedulers.newThread());
+
+        Observable.zip(observable1, observable2, (aLong, aLong2) -> {
+            log.info("aLong:{},aLong2:{}", aLong, aLong2);
+            return aLong + aLong2;
+        }).subscribe(o -> log.info("test Zip value:{}", o));
+
+        Thread.sleep(5000);
     }
 }
