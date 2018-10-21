@@ -8,7 +8,6 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.subjects.Subject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import rx.observables.MathObservable;
 
 import static org.junit.Assert.assertTrue;
 

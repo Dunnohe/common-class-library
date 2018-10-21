@@ -1,9 +1,8 @@
 package common.rxjava2;
 
+import io.reactivex.CompletableObserver;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
-import io.reactivex.functions.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
@@ -12,6 +11,7 @@ public class _3FilterOptTest {
 
     /**
      * 仅在过了一段指定的时间还没发射数据时才发射一个数据
+     * todo
      */
     @Test
     public void testDebounce() {
@@ -27,14 +27,14 @@ public class _3FilterOptTest {
                 .distinct().subscribe(integer -> log.info("data:{}", integer));
     }
     /**
-     * 只发射第N项数据
+     * 只发射第N项数据,从0开始
      */
     @Test
     public void testElementAt() {
         Observable.just(1, 2, 3)
-                .elementAt(1).subscribe(integer -> log.info("data:{}", integer));
+                .elementAt(0).subscribe(integer -> log.info("data:{}", integer));
         Observable.just(1, 2, 3)
-                .elementAt(4).subscribe(integer -> log.info("data:{}", integer));
+                .elementAt(3).subscribe(integer -> log.info("data:{}", integer));
     }
 
     /**
@@ -64,8 +64,23 @@ public class _3FilterOptTest {
     @Test
     public void testIgnoreElements() {
         Observable.just(1, 2, 3).ignoreElements()
-                .doOnSubscribe(disposable -> log.info("no data"))
-                .doOnComplete(() -> log.info("complete"));
+                .doOnComplete(() -> log.info("ss"))
+                .subscribe(new CompletableObserver() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onComplete() {
+                log.info("complete");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+        });
     }
 
     /**
@@ -82,6 +97,7 @@ public class _3FilterOptTest {
 
     /**
      * 定期发射Observable最近发射的数据项
+     * todo
      */
     @Test
     public void testSample() {
