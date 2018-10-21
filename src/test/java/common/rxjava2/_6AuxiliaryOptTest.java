@@ -1,14 +1,11 @@
 package common.rxjava2;
 
 import io.reactivex.Observable;
-import io.reactivex.Scheduler;
-import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
