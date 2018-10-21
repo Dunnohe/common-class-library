@@ -1,14 +1,22 @@
 package common.rxjava2;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.schedulers.Timed;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -38,9 +46,38 @@ public class _6AuxiliaryOptTest {
      */
     @Test
     public void testDoOnEach() {
-        Observable.range(0, 3)
-                .doOnEach(integerNotification -> log.info("call back value:{}", integerNotification.getValue()))
-                .subscribe(o -> log.info("test do on each value:{}", o));
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                for (int i = 0; i < 3; i++) {
+                    log.info("before emit value:{}", i);
+                    emitter.onNext(i);
+                    log.info("after emit value:{}", i);
+
+                }
+            }
+        }).doOnEach(integerNotification -> log.info("each callback value:{}", integerNotification.getValue()))
+            .subscribe(new Observer<Integer>() {
+                @Override
+                public void onSubscribe(Disposable d) {
+
+                }
+
+                @Override
+                public void onNext(Integer integer) {
+                    log.info("consumer each value:{}", integer);
+                }
+
+                @Override
+                public void onError(Throwable e) {
+
+                }
+
+                @Override
+                public void onComplete() {
+
+                }
+            });
     }
 
     /**
@@ -48,14 +85,38 @@ public class _6AuxiliaryOptTest {
      */
     @Test
     public void testDoOnNext() {
-        Observable.range(0, 3).doOnNext(integer -> {
-            if (integer == 2) {
-                throw new Error("value is error:2");
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                for (int i = 0; i < 3; i++) {
+                    log.info("before emit value:{}", i);
+                    emitter.onNext(i);
+                    log.info("after emit value:{}", i);
+
+                }
             }
-            log.info("value is :{}", integer);
-        }).subscribe(o -> log.info("test do on next"),
-                throwable -> log.info("test do on next error:{}", throwable.getMessage()),
-                () -> log.info("complete"));
+        }).doOnNext(data -> log.info("each doOnNext value:{}", data))
+                .subscribe(new Observer<Integer>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(Integer integer) {
+                        log.info("consumer each value:{}", integer);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     /**
@@ -65,7 +126,27 @@ public class _6AuxiliaryOptTest {
     public void testDoOnComplete() {
         Observable.just(1, 2, 3, 4, 5, 6).doOnComplete(() -> {
             log.info("test do on complete");
-        }).subscribe(o -> log.info("test do on complete value:{}", o));
+        }).subscribe(new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(Integer integer) {
+                log.info("consumer each value:{}", integer);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+                log.info("complete");
+            }
+        });
     }
 
     /**
@@ -74,20 +155,26 @@ public class _6AuxiliaryOptTest {
      */
     @Test
     public void testMaterializeAndDematerialize() {
-        Observable.range(0, 3).materialize().dematerialize().subscribe(o -> {
-            log.info("test materialize value:{}", o);
+        Observable.range(0, 3).materialize().subscribe(o -> {
+            log.info("test materialize value:{}", o.getClass().getName());
         });
+        /*Observable.range(0, 3).dematerialize().subscribe(o -> {
+            log.info("test materialize value:{}", o);
+        });*/
     }
 
     /**
      * ObserveOn:指定一个观察者在哪个调度器上观察这个Observable
+     * 指定消费者
      */
     @Test
     public void testObserveOn() throws InterruptedException {
         ExecutorService executorService = new ThreadPoolExecutor(5, 5, 1, TimeUnit.MINUTES, new LinkedBlockingDeque<>());
 
         Observable<Integer> integerObservable = Observable.just(1, 2, 3, 4, 5, 6);
+        integerObservable.subscribe(o -> log.info("test ObserveOn value:{}", o));
         integerObservable.observeOn(Schedulers.from(executorService)).subscribe(o -> log.info("test ObserveOn value:{}", o));
+
         Thread.sleep(5000);
     }
 
@@ -96,19 +183,55 @@ public class _6AuxiliaryOptTest {
      */
     @Test
     public void testSubscribeOn() throws InterruptedException {
-        ExecutorService executorService = new ThreadPoolExecutor(5, 5, 1, TimeUnit.MINUTES, new LinkedBlockingDeque<>());
-        Observable.just(1, 2, 3, 4, 5, 6).subscribeOn(Schedulers.from(executorService)).subscribe(o -> log.info("test subscribeOn value:{}", o));
-        Thread.sleep(5000);
-    }
+        ExecutorService produceExecutor = new ThreadPoolExecutor(5, 5, 1, TimeUnit.MINUTES, new LinkedBlockingDeque<>(), new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setName("produce thread");
+                return thread;
+            }
+        });
 
-    /**
-     * 保证上游下游同一线程 ，防止不同线程下 数据不一致
-     */
-    @Test
-    public void testSerialize() throws InterruptedException {
-        Observable.range(0, 3)
-                .serialize()
-                .subscribe(o -> log.info("test Serialize value:{}", o));
+        ExecutorService consumerExecutor = new ThreadPoolExecutor(5, 5, 1, TimeUnit.MINUTES, new LinkedBlockingDeque<>(), new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setName("consumer thread");
+                return thread;
+            }
+        });
+
+        Observable.create((ObservableOnSubscribe<Integer>) emitter -> {
+            for (int i = 0; i < 3; i++) {
+                log.info("data1:{}", i);
+                emitter.onNext(i);
+            }
+        }).observeOn(Schedulers.from(consumerExecutor)).subscribe(o -> log.info("data1 consumer:{}", o));
+
+        log.info("=======");
+
+        Observable<Integer> observable = Observable.create(emitter -> {
+            for (int i = 0; i < 3; i++) {
+                log.info("data2:{}", i);
+                emitter.onNext(i);
+            }
+        });
+
+        observable.subscribeOn(Schedulers.from(produceExecutor)).subscribe(o -> log.info("data2 consumer:{}", o));
+
+        log.info("=======");
+        Observable<Integer> observable1 = Observable.create(emitter -> {
+            for (int i = 0; i < 3; i++) {
+                log.info("data3:{}", i);
+                emitter.onNext(i);
+            }
+        });
+        observable1
+                .subscribeOn(Schedulers.from(produceExecutor))
+                .observeOn(Schedulers.from(consumerExecutor))
+                .subscribe(o -> log.info("data3 consumer:{}", o));
+
+        Thread.sleep(5000);
     }
 
     /**
@@ -118,10 +241,8 @@ public class _6AuxiliaryOptTest {
      */
     @Test
     public void testSubscribeAndForEach() {
-        Observable.range(0, 3)
-                //subscribe的简化版本
-                .forEach(o -> log.info("test for each value:{}", o));
-
+        //subscribe的简化版本
+        Observable.range(0, 3).forEach(o -> log.info("test for each value:{}", o));
         Observable.range(0, 3).subscribe(o -> log.info("test subscribe value:{}", o));
     }
 
@@ -146,7 +267,7 @@ public class _6AuxiliaryOptTest {
         Observable.just(1, 2, 3, 4, 5, 6)
                 // 把发送的数据 转化为  相邻发送数据的时间间隔实体
                 .timeInterval()
-                .forEach(o -> log.info("test TimeInterval value:{}", o));
+                .forEach((Timed<Integer> o) -> log.info("test TimeInterval value:{}", o));
     }
 
     /**
@@ -157,10 +278,29 @@ public class _6AuxiliaryOptTest {
         Observable.interval(100, TimeUnit.MILLISECONDS)
                 //过了一个指定的时长仍没有发射数据(不是仅仅考虑第一个)，它会发一个错误
                 .timeout(50, TimeUnit.MILLISECONDS)
-                .subscribe(o -> log.info("test time out value:{}", o)
-                        , error -> log.info("time out error:{}", error.getMessage())
-                        , () -> log.info("test timeout complete")
-                        , disposable -> log.info("test timeout 订阅"));
+                .subscribe(new Observer<Long>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(Long aLong) {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        log.info("time out---");
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+
+        log.info("============");
 
         Observable<Integer> other;
         Observable.empty()
@@ -181,12 +321,12 @@ public class _6AuxiliaryOptTest {
      */
     @Test
     public void testTo() {
-        Observable.just(1, 2, 3, 4, 5, 6).toList().blockingGet().forEach(o -> log.info("test to list value:{}", o));
-
-        Observable.just(5, 1, 7, 2, 9, 3).toSortedList().blockingGet().forEach(o -> log.info("test to sorted list value:{}", o));
-
-        Map<String, Integer> toMap = Observable.just(1, 2, 3).toMap(integer -> integer + "key", Integer::intValue, () -> new HashMap<>()).blockingGet();
-        log.info("test to Map :{}",toMap);
+        log.info("data:{}", Observable.just(1, 2, 3, 4, 5, 6).toList().blockingGet());
+        log.info("data:{}", Observable.just(7, 2, 3, 4, 5, 6).toSortedList().blockingGet());
+        log.info("data:{}", Observable.just(7, 2, 3, 4, 5, 6).toMap(
+                integer -> integer + "key",
+                value -> value + "value",
+                TreeMap::new).blockingGet());
 
     }
 

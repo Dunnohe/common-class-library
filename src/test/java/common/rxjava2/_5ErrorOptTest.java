@@ -2,7 +2,10 @@ package common.rxjava2;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
@@ -33,10 +36,20 @@ public class _5ErrorOptTest {
             log.info("error");
             return -1;
         }).subscribe(integer -> log.info("data:{}", integer));
+
+        log.info("=======");
         obs.onErrorResumeNext(Observable.just("hello")).subscribe(obj -> log.info("data:{}", obj));
+
+        log.info("=======");
         obs.onExceptionResumeNext(Observable.just("hello")).subscribe(obj -> log.info("data:{}", obj));
     }
 
+    @Test
+    public void testEx() {
+        IOException ioException = new IOException("123");
+        Throwable throwable = ioException;
+        log.info("data:{}", throwable instanceof RuntimeException);
+    }
 
     /**
      * repeat and retry difference
@@ -45,34 +58,46 @@ public class _5ErrorOptTest {
      */
     @Test
     public void testRetry() {
-        Observable<Object> obs = Observable
+        Observable<Integer> obs = Observable
                 .create(sub -> {
                     for (int i = 0; i < 10; i++) {
                         if (i == 1) {
-                            sub.onError(new RuntimeException("error"));
+                            sub.onError(new IOException("error"));
                         }
                         sub.onNext(i);
                     }
                 });
 
-        obs.retry((time, ex) -> time != 2 || !(ex instanceof RuntimeException))
-                .subscribe(obj -> log.info("data:{}", obj));
+        obs.retry(2, new Predicate<Throwable>() {
+            @Override
+            public boolean test(Throwable throwable) throws Exception {
+                return throwable instanceof IOException;
+            }
+        }).subscribe(new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable d) {
 
-        obs.retryWhen(new Function<Observable<Throwable>, ObservableSource<?>>() {
-                          @Override
-                          public ObservableSource<?> apply(Observable<Throwable> errors) throws Exception {
-                              return errors.flatMap(error -> {
-                                  // For IOExceptions, we  retry
-                                  if (error instanceof IOException) {
-                                      return Observable.just(null);
-                                  }
+            }
 
-                                  // For anything else, don't retry
-                                  return Observable.error(error);
-                              });
-                          }
-                      }
-        );
+            @Override
+            public void onNext(Integer o) {
+                log.info("data:{}", o);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                log.error("err");
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
+
+
+
     }
 
 

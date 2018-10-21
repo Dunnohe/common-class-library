@@ -2,9 +2,6 @@ package common.rxjava2;
 
 import com.google.common.base.Optional;
 import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
@@ -68,6 +65,9 @@ public class _7ConditionAndBoolOptTest {
         );
     }
 
+    /**
+     * todo
+     */
     @Test
     public void testSkipUntil() {
         Observable.just(1, 2, 3, 4, 5)
