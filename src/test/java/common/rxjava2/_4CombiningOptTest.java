@@ -1,8 +1,7 @@
 package common.rxjava2;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.*;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
@@ -10,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
+
+import static io.reactivex.Observable.*;
 
 /**
  * @author: linhu
@@ -20,12 +21,43 @@ import java.util.concurrent.TimeUnit;
 public class _4CombiningOptTest {
 
     /**
-     * 使用Pattern和Plan作为中介，将两个或多个Observable发射的数据集合并到一起
-     * 接受两个或多个Observable，一次一个将它们的发射物合并到Pattern对象，然后操作那个Pattern对象，
-     * 变换为一个Plan。随后将这些Plan变换为Observable的发射物。
+     * and then (Completable中的方法最常用):在这个操作符中你可以传任何Observable、Single、Flowable、Maybe或者其他Completable，
+     * 它们会在原来的 Completable 结束后执行
      */
     @Test
-    public void testAnd_Then_When() {
+    public void testAndThen() {
+        // Completable可以看成是runnable
+        Completable.fromAction(new Action() {
+            @Override
+            public void run() throws Exception {
+                log.info("hello world");
+
+            }
+        }).andThen((SingleSource<Object>) singleObserver -> log.info("Hi,how are you!")).subscribe();
+    }
+
+    /**
+     * 当出现某个条件的时候就触发
+     * 需要一个Observable 通过判断 throwableObservable,Observable发射一个数据 就重新订阅，发射的是 onError 通知，
+     * 它就将这个通知传递给观察者然后终止。
+     */
+    @Test
+    public void testRetryWhen() {
+        Observable.just(1, "2", 3)
+                .cast(Integer.class)
+                .retryWhen(throwableObservable -> {
+                    return throwableObservable.switchMap(throwable -> {
+                        if (throwable instanceof IllegalArgumentException) {
+                            return Observable.just(throwable);
+                        }
+                        return Observable.just(1).cast(String.class);
+                    });
+                })
+                .subscribe(o -> {
+                    log.info("test retry when value:{}", o);
+                }, throwable -> {
+                    log.error("test retry when error:", throwable);
+                });
     }
 
     /**
@@ -34,21 +66,21 @@ public class _4CombiningOptTest {
      */
     @Test
     public void testCombineLatest() {
-        Observable<Integer> take_1 = Observable.just(1, 2, 3, 4, 5, 6).map(new Function<Integer, Integer>() {
+        Observable<Integer> take_1 = just(1, 2, 3, 4, 5, 6).map(new Function<Integer, Integer>() {
             @Override
             public Integer apply(Integer integer) throws Exception {
                 return integer * 5;
             }
         }).take(1);
 
-        Observable<Integer> take_2 = Observable.just(1, 2, 3, 4, 5, 6).map(new Function<Integer, Integer>() {
+        Observable<Integer> take_2 = just(1, 2, 3, 4, 5, 6).map(new Function<Integer, Integer>() {
             @Override
             public Integer apply(Integer integer) throws Exception {
                 return integer * 5;
             }
         }).take(1);
 
-        Observable.combineLatest(take_1, take_2, (integer, integer2) -> integer + integer2).subscribe(new Consumer<Integer>() {
+        combineLatest(take_1, take_2, (integer, integer2) -> integer + integer2).subscribe(new Consumer<Integer>() {
             @Override
             public void accept(Integer integer) throws Exception {
                 log.info("And Then When values:{}", integer);
@@ -65,39 +97,38 @@ public class _4CombiningOptTest {
      */
     @Test
     public void testJoin() throws InterruptedException {
-        Observable<Integer> observable_01 = Observable.create(new ObservableOnSubscribe() {
-            @Override
-            public void subscribe(ObservableEmitter observableEmitter) throws Exception {
-                for (int i = 1; i <= 5; i++) {
-                    observableEmitter.onNext(i);
-
-                }
-            }
-        });
-
-        Observable<Integer> observable_02 = Observable.create(new ObservableOnSubscribe() {
-            @Override
-            public void subscribe(ObservableEmitter observableEmitter) throws Exception {
-                Thread.sleep(1000);
-                observableEmitter.onNext("B");
-            }
-        });
+        Observable.intervalRange(10, 4, 0, 300, TimeUnit.MILLISECONDS)
+                .join(Observable.interval(100, TimeUnit.MILLISECONDS)
+                                .take(7)
+                        , aLong -> {
+                            log.info("开始收集：" + aLong);
+                            return Observable.just(aLong);
+                        }
+                        , aLong -> Observable.timer(200, TimeUnit.MILLISECONDS)
+                        , (aLong, aLong2) -> {
+                            log.info("aLong:" + aLong + " aLong2:" + aLong2);
+                            return aLong + aLong2;
+                        }
+                )
+                .subscribe(aLong -> log.info("test join value:{}", aLong));
+        Thread.sleep(10000);
     }
 
     /**
      * Merge 合并多个Observables的发射物
+     * 根据时间线合并
      */
     @Test
     public void testMerge() throws InterruptedException {
         Observable<Long> ob1 = Observable.interval(100, TimeUnit.MILLISECONDS)
-                .take(3)
+                .take(4)
                 .subscribeOn(Schedulers.newThread());
         Observable<Long> ob2 = Observable.interval(50, TimeUnit.MILLISECONDS)
-                .take(3)
+                .take(4)
                 .map(aLong -> aLong + 10)
                 .subscribeOn(Schedulers.newThread());
 
-        Observable.merge(ob1, ob2)
+        merge(ob1, ob2)
                 .subscribe(o -> log.info("test merge value:{}", o));
 
         Thread.sleep(5000);
@@ -109,10 +140,10 @@ public class _4CombiningOptTest {
      */
     @Test
     public void testStartWith() {
-        Observable.just(1)
+        just(1)
                 .startWith(2)
                 .startWith(3)
-                .startWith(Observable.just(4))
+                .startWith(just(4))
                 .startWith(5)
                 .startWithArray(6, 7)
                 .subscribe(s -> log.info("test start with value:{}", s));
@@ -120,10 +151,16 @@ public class _4CombiningOptTest {
 
     /**
      * Switch 将一个发射多个Observables的Observable转换成另一个单独的Observable，后者发射那些Observables最近发射的数据项
+     * 如果原始Observable正常终止后仍然没有发射任何数据，就使用备用的Observable
      */
     @Test
-    public void testSwitch() {
+    public void testSwitchIfEmpty() {
+        Observable.empty()
+                .switchIfEmpty(Observable.just(2, 3, 4))
+                .subscribe(o -> log.info("test switchIfEmpty value:{}", o));
 
+        Observable.just(1, 2, 3, 4, 5, 6).switchIfEmpty(Observable.just(7, 8, 9))
+                .subscribe(o -> log.info("test switch value:{}", o));
     }
 
     /**
@@ -132,15 +169,15 @@ public class _4CombiningOptTest {
      */
     @Test
     public void testZip() throws InterruptedException {
-        Observable<Long> observable1 = Observable.interval(100, TimeUnit.MILLISECONDS)
+        Observable<Long> observable1 = interval(100, TimeUnit.MILLISECONDS)
                 .take(3)
                 .subscribeOn(Schedulers.newThread());
 
-        Observable<Long> observable2 = Observable.interval(200, TimeUnit.MILLISECONDS)
+        Observable<Long> observable2 = interval(200, TimeUnit.MILLISECONDS)
                 .take(4)
                 .subscribeOn(Schedulers.newThread());
 
-        Observable.zip(observable1, observable2, (aLong, aLong2) -> {
+        zip(observable1, observable2, (aLong, aLong2) -> {
             log.info("aLong:{},aLong2:{}", aLong, aLong2);
             return aLong + aLong2;
         }).subscribe(o -> log.info("test Zip value:{}", o));
