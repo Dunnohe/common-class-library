@@ -14,10 +14,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author: linhu
  * @date: 2018/10/14 18:44
- * @description:
+ * @description: 合并操作
  */
 @Slf4j
-public class _04CombiningOptTest {
+public class _4CombiningOptTest {
 
     /**
      * 使用Pattern和Plan作为中介，将两个或多个Observable发射的数据集合并到一起
