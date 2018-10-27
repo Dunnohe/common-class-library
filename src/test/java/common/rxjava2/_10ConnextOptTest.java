@@ -44,7 +44,7 @@ public class _10ConnextOptTest {
         log.info("=================订阅3====================================");
         connectableObservable.doOnSubscribe(disposable -> log.info("订阅3："))
                 .subscribe(integer -> log.info("test connect03 value:{}", integer));
-
+        //此时不发射数据 只有等到连接才可消费
     }
 
     /**
@@ -55,7 +55,7 @@ public class _10ConnextOptTest {
         ConnectableObservable<Integer> connectableObservable = Observable.just(1, 2, 3, 4, 5, 6).publish();
         log.info("=================订阅1====================================");
         connectableObservable.subscribe(integer -> log.info("test connect01 value:{}", integer));
-
+        //此时不发射数据 只有等到连接才可消费
 
         ConnectableObservable<Integer> connectableObservable2 = Observable.just(1, 2, 3, 4, 5, 6).publish();
         log.info("=================订阅2====================================");
@@ -64,6 +64,7 @@ public class _10ConnextOptTest {
 
     /**
      * Replay:每次订阅 都对单个订阅的重复播放一边,保证每个消费者获取的数据序列一致
+     * 总是发射完整的数据序列给任何未来的观察者，即使那些观察者在这个Observable开始给其它观察者发射数据之后才订阅
      */
     @Test
     public void testReplay() {
