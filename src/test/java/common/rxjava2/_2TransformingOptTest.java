@@ -19,8 +19,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * @date: 2018/10/14 14:15
- * @description: 转换操作
+ * 转换操作
  */
 @Slf4j
 public class _2TransformingOptTest {

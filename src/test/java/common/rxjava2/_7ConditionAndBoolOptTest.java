@@ -9,6 +9,9 @@ import java.util.Arrays;
 
 import static org.junit.Assert.*;
 
+/**
+ * 条件布尔操作
+ */
 @Slf4j
 public class _7ConditionAndBoolOptTest {
 
