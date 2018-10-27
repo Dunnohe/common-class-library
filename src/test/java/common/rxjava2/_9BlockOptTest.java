@@ -8,6 +8,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 /**
  * 阻塞操作
  */
@@ -58,5 +62,16 @@ public class _9BlockOptTest {
         Observable.just(1, 2, 3).
                 toList().blockingGet().iterator().forEachRemaining(value -> log.info("data:{}", value));
 
+    }
+
+    /**
+     * 测试转换成future
+     */
+    @Test
+    public void testToFuture() throws ExecutionException, InterruptedException {
+
+        Future<List<Integer>> listFuture = Observable.just(1, 2, 3).toList().toFuture();
+        List<Integer> integers = listFuture.get();
+        log.info("data:{}", integers);
     }
 }
