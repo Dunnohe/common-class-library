@@ -7,27 +7,29 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.internal.observers.BlockingObserver;
+import io.reactivex.internal.operators.observable.BlockingObservableIterable;
 import io.reactivex.observables.GroupedObservable;
 import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.NoSuchElementException;
+import java.util.concurrent.*;
 
 /**
- * @author: linhu
  * @date: 2018/10/14 14:15
  * @description: 转换操作
  */
 @Slf4j
 public class _2TransformingOptTest {
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
     /**
      * buffer操作符：定期收集Observable的数据放进一个数据包裹，然后发射这些数据包裹，而不是一次发射一个值
      */
@@ -120,7 +122,6 @@ public class _2TransformingOptTest {
     }
 
 
-
     /**
      * FlatMap将一个发射数据的Observable变换为多个Observables，然后将它们发射的数据处理合并后放进一个单独的Observable
      * 但有个需要注意的是，flatMap 并不能保证事件的顺序，如果需要保证，需要用到ConcatMap。它与FlatMap唯一区别就是保证处理后的顺序
@@ -138,7 +139,7 @@ public class _2TransformingOptTest {
                             @Override
                             public Student call() throws Exception {
                                 student.setCourses(Arrays.asList("chinese", "math"));
-                                if(student.name.equals("tom")) {
+                                if (student.name.equals("tom")) {
                                     for (int i = 0; i < 10000000; i++) {
 
                                     }
@@ -149,11 +150,11 @@ public class _2TransformingOptTest {
                     }
                 })
                 .subscribe(new Consumer<Student>() {
-            @Override
-            public void accept(Student strings) throws Exception {
-                log.info("test flatMap : value : {}", strings);
-            }
-        });
+                    @Override
+                    public void accept(Student strings) throws Exception {
+                        log.info("test flatMap : value : {}", strings);
+                    }
+                });
 
 
         //消费异步
@@ -280,6 +281,23 @@ public class _2TransformingOptTest {
                         log.info("test reduce value:{}", integer);
                     }
                 });
+    }
+
+    /**
+     * toFuture 这个操作符将Observable转换为一个返回[单]个数据项的Future
+     * 如果原始Observable发射多个数据项，toList().toFuture().get()
+     * 如果原始Observable没有发射任何数据，Future会收到一个NoSuchElementException
+     */
+    @Test
+    public void testToFuture() throws ExecutionException, InterruptedException {
+        Integer onlyFuture = Observable.just(1).toFuture().get();
+        log.info("test to future value:{}",onlyFuture);
+
+        List<Integer> moreFuture = Observable.just(1, 2, 3, 4).toList().toFuture().get();
+        log.info("test to future values:{}",moreFuture);
+
+        thrown.expect(ExecutionException.class);
+        Observable.empty().toFuture().get();
     }
 
 }

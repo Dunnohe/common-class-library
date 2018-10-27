@@ -2,16 +2,12 @@ package common.rxjava2;
 
 import io.reactivex.*;
 import io.reactivex.functions.Action;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author: linhu
  * @date: 2018/10/14 18:44
  * @description: 合并操作
  */

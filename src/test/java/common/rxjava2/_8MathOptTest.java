@@ -1,11 +1,6 @@
 package common.rxjava2;
 
-import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.Single;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.subjects.Subject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
