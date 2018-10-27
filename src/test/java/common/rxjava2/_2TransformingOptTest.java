@@ -7,8 +7,6 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.reactivex.internal.observers.BlockingObserver;
-import io.reactivex.internal.operators.observable.BlockingObservableIterable;
 import io.reactivex.observables.GroupedObservable;
 import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +16,6 @@ import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.*;
 
 /**
@@ -30,6 +27,7 @@ public class _2TransformingOptTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+
     /**
      * buffer操作符：定期收集Observable的数据放进一个数据包裹，然后发射这些数据包裹，而不是一次发射一个值
      */
@@ -65,11 +63,15 @@ public class _2TransformingOptTest {
      */
     @Test
     public void testWindow() {
+        Observable.just(1, 2, 3, 4, 5, 6)
+                .subscribe(integer -> log.info("===>" + integer));
+
+        //以两个数据项为一个时间窗口进行发射
         Observable.just(1, 2, 3, 4, 5, 6).
-                window(3)
-                .subscribe(integerObservable -> {
-                    integerObservable.subscribe(integer -> log.info(integerObservable + "===>" + integer));
-                });
+                window(2).subscribe(integerObservable ->
+        {
+            integerObservable.subscribe(integer -> log.info(integerObservable + "===>" + integer));
+        });
     }
 
     public class Student implements Callable<Student> {
@@ -99,6 +101,7 @@ public class _2TransformingOptTest {
         public Student call() throws Exception {
             return this;
         }
+
     }
 
     /**
@@ -291,10 +294,10 @@ public class _2TransformingOptTest {
     @Test
     public void testToFuture() throws ExecutionException, InterruptedException {
         Integer onlyFuture = Observable.just(1).toFuture().get();
-        log.info("test to future value:{}",onlyFuture);
+        log.info("test to future value:{}", onlyFuture);
 
         List<Integer> moreFuture = Observable.just(1, 2, 3, 4).toList().toFuture().get();
-        log.info("test to future values:{}",moreFuture);
+        log.info("test to future values:{}", moreFuture);
 
         thrown.expect(ExecutionException.class);
         Observable.empty().toFuture().get();
