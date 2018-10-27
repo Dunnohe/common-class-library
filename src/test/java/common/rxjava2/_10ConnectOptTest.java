@@ -2,6 +2,7 @@ package common.rxjava2;
 
 import io.reactivex.Observable;
 import io.reactivex.observables.ConnectableObservable;
+import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Rule;
 import org.junit.Test;
@@ -9,17 +10,16 @@ import org.junit.rules.ExpectedException;
 
 
 /**
- * @date: 2018/10/27 12:22
- * @description:
+ * 连接操作
  */
 @Slf4j
-public class _10ConnextOptTest {
+public class _10ConnectOptTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     /**
-     * ConnectableObservable：可连接的Observable在 被订阅时并不开始发射数据，只有在它的 connect() 被调用时才开始用这种方法，
+     * Connectable Observable：可连接的Observable在 被订阅时并不开始发射数据，只有在它的 connect() 被调用时才开始用这种方法，
      * 可以等所有的潜在订阅者都订阅了这个Observable之后才开始发射数据。
      * 即使没有任何订阅者订阅它，也可以使用 connect 让他发射
      * <p>
@@ -29,7 +29,8 @@ public class _10ConnextOptTest {
     public void testConnectableObservable() {
 
         //使用publish将Observable转换成相应的ConnectableObservable操作
-        ConnectableObservable<Integer> connectableObservable = Observable.just(1, 2, 3, 4, 5, 6).publish();
+        ConnectableObservable<Integer> connectableObservable =
+                Observable.just(1, 2, 3, 4, 5, 6).publish();
 
         log.info("=================订阅1====================================");
         connectableObservable.doOnSubscribe(disposable -> log.info("订阅1："))
@@ -38,6 +39,8 @@ public class _10ConnextOptTest {
         log.info("=================订阅2====================================");
         connectableObservable.doOnSubscribe(disposable -> log.info("订阅2："))
                 .subscribe(integer -> log.info("test connect02 value:{}", integer));
+
+        log.info("我要开始连接消费了");
         //此时开始发射数据
         connectableObservable.connect();
 
@@ -67,10 +70,10 @@ public class _10ConnextOptTest {
      * 总是发射完整的数据序列给任何未来的观察者，即使那些观察者在这个Observable开始给其它观察者发射数据之后才订阅
      */
     @Test
-    public void testReplay() {
+    public void testReplay() throws InterruptedException {
         //切记要让ConnectableObservable具有重播的能力,必须Obserable的时候调用replay,
         // 而不是ConnectableObservable 的时候调用replay
-        ConnectableObservable<Integer> connectableObservable = Observable.just(1, 2, 3, 4, 5, 6).replay().publish();
+        ConnectableObservable<Integer> connectableObservable = Observable.just(1, 2, 3, 4, 5, 6).replay(1);
 
         log.info("=================订阅1====================================");
         connectableObservable.doOnSubscribe(disposable -> log.info("订阅1："))
@@ -80,6 +83,8 @@ public class _10ConnextOptTest {
         log.info("=================订阅2====================================");
         connectableObservable.doOnSubscribe(disposable -> log.info("订阅2："))
                 .subscribe(integer -> log.info("test connect02 value:{}", integer));
+
+        Thread.sleep(10000);
     }
 
 }

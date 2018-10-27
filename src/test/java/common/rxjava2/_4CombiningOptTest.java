@@ -8,8 +8,7 @@ import org.junit.Test;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @date: 2018/10/14 18:44
- * @description: 合并操作
+ * 合并操作
  */
 @Slf4j
 public class _4CombiningOptTest {

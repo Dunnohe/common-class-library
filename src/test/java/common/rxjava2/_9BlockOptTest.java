@@ -46,15 +46,6 @@ public class _9BlockOptTest {
     }
 
     /**
-     * 返回一个总是返回Observable最近发射的数据的iterable
-     */
-    @Test
-    public void testMostRecent() {
-        Observable.just(1, 2, 3)
-                .blockingMostRecent(1).forEach(value -> log.info("data:{}", value));
-    }
-
-    /**
      * 转换成collection
      */
     @Test

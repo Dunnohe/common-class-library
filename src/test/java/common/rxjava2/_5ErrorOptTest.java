@@ -1,7 +1,6 @@
 package common.rxjava2;
 
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
@@ -11,6 +10,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 
+/**
+ * 异常处理操作
+ */
 @Slf4j
 public class _5ErrorOptTest {
 

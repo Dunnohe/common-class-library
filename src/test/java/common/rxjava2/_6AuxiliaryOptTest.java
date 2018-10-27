@@ -18,8 +18,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @date: 2018/10/21 11:22
- * @description:辅助操作
+ * 辅助操作
  */
 @Slf4j
 public class _6AuxiliaryOptTest {

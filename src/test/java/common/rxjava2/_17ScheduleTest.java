@@ -1,6 +1,8 @@
 package common.rxjava2;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -38,6 +40,20 @@ public class _17ScheduleTest {
         Thread.sleep(5000);
     }
 
+    int getData1() throws InterruptedException {
+       Thread.sleep(3000);
+       return 1;
+    }
+
+    int getData2() throws InterruptedException {
+        Thread.sleep(2000);
+        return 2;
+    }
+
+    int getData3() throws InterruptedException {
+        Thread.sleep(1000);
+        return 3;
+    }
     /**
      * 使用指定的Executor作为调度器
      */
@@ -47,12 +63,12 @@ public class _17ScheduleTest {
             @Override
             public Thread newThread(Runnable r) {
                 Thread thread = new Thread(r);
-                thread.setName("produce thread");
+                thread.setName("produce thread" + thread.getId());
                 return thread;
             }
         });
 
-        Observable.just(1, 2, 3).observeOn(Schedulers.from(consumerExecutor)).subscribe(data -> log.info("data:{}", data));
+        Observable.just(getData1(), getData2(), getData3()).subscribeOn(Schedulers.from(consumerExecutor)).subscribe(data -> log.info("data:{}", data));
         Thread.sleep(5000);
     }
 
