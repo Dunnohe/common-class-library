@@ -1,6 +1,7 @@
 package common.rxjava2;
 
 import io.reactivex.Observable;
+import io.reactivex.subjects.Subject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
@@ -29,12 +30,10 @@ public class _8MathOptTest {
 
     @Test
     public void testReduce() {
-
     }
 
     @Test
     public void testMax() {
-
     }
 
     @Test
