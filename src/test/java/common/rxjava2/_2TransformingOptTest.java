@@ -266,7 +266,7 @@ public class _2TransformingOptTest {
     }
 
     /**
-     * Reduce连续对数据序列每一项应用一个函数，但是区别于Scan，只是输出最后处理结果
+     * Reduce连续对数据序列每一项应用一个函数，但是区别于Scan，上一次处理的结果作为下一次处理的入参
      */
     @Test
     public void testReduce() {
