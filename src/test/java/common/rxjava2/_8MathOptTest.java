@@ -73,6 +73,9 @@ public class _8MathOptTest {
     @Test
     public void testSum() {
         int sum = Observable.just(1, 2, 3, 4).toList().blockingGet().stream().mapToInt(Integer::intValue).sum();
+        System.out.println();
         log.info("data:{}", sum);
+
     }
+
 }
