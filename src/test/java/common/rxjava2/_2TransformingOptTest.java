@@ -29,6 +29,7 @@ public class _2TransformingOptTest {
 
     /**
      * buffer操作符：定期收集Observable的数据放进一个数据包裹，然后发射这些数据包裹，而不是一次发射一个值
+     * @see "http://reactivex.io/documentation/operators/buffer.html"
      */
     @Test
     public void testBuffer() {
@@ -57,77 +58,9 @@ public class _2TransformingOptTest {
     }
 
     /**
-     * Window 定期将来自原始Observable的数据分解为一个Observable窗口，发射这些窗口，而不是每次发射一项数据
-     * 与buffer一样，区别是Window取自Observables对象，但是buffer取得是数据包
-     */
-    @Test
-    public void testWindow() {
-        Observable.just(1, 2, 3, 4, 5, 6)
-                .subscribe(integer -> log.info("===>" + integer));
-
-        //以两个数据项为一个时间窗口进行发射
-        Observable.just(1, 2, 3, 4, 5, 6).
-                window(2).subscribe(integerObservable ->
-        {
-            integerObservable.subscribe(integer -> log.info(integerObservable + "===>" + integer));
-        });
-    }
-
-    public class Student implements Callable<Student> {
-        //姓名
-        private String name;
-
-        //选修课列表
-        private List<String> courses;
-
-        public Student(String name) {
-            this.name = name;
-        }
-
-        public void setCourses(List<String> courses) {
-            this.courses = courses;
-        }
-
-        @Override
-        public String toString() {
-            return "Student{" +
-                    "name='" + name + '\'' +
-                    ", courses=" + courses +
-                    '}';
-        }
-
-        @Override
-        public Student call() throws Exception {
-            return this;
-        }
-
-    }
-
-    /**
-     * Map  对Observable发射的每一项数据应用一个函数，执行变换操作
-     */
-    @Test
-    public void testMap() {
-        Observable.just(new Student("tom"), new Student("jerry"), new Student("jack"))
-                .map(new Function<Student, Student>() {
-                    @Override
-                    public Student apply(Student student) throws Exception {
-                        student.setCourses(Arrays.asList("chinese", "math"));
-                        return student;
-                    }
-                }).subscribe(new Consumer<Student>() {
-            @Override
-            public void accept(Student student) throws Exception {
-                log.info("test Map value:{}", student);
-            }
-        });
-    }
-
-
-    /**
      * FlatMap将一个发射数据的Observable变换为多个Observables，然后将它们发射的数据处理合并后放进一个单独的Observable
      * 但有个需要注意的是，flatMap 并不能保证事件的顺序，如果需要保证，需要用到ConcatMap。它与FlatMap唯一区别就是保证处理后的顺序
-     * https://www.jianshu.com/p/3e5d53e891db
+     * http://reactivex.io/documentation/operators/flatmap.html
      */
     @Test
     public void testFlatMap() throws InterruptedException {
@@ -179,6 +112,7 @@ public class _2TransformingOptTest {
 
     /**
      * GroupBy 将一个Observable分拆为一些Observables集合，它们中的每一个发射原始Observable的一个子序列
+     * @see "http://reactivex.io/documentation/operators/groupby.html"
      */
     @Test
     public void testGroupBy() {
@@ -245,7 +179,59 @@ public class _2TransformingOptTest {
     }
 
     /**
+     * Map  对Observable发射的每一项数据应用一个函数，执行变换操作
+     * @see "http://reactivex.io/documentation/operators/map.html"
+     */
+    @Test
+    public void testMap() {
+        Observable.just(new Student("tom"), new Student("jerry"), new Student("jack"))
+                .map(new Function<Student, Student>() {
+                    @Override
+                    public Student apply(Student student) throws Exception {
+                        student.setCourses(Arrays.asList("chinese", "math"));
+                        return student;
+                    }
+                }).subscribe(new Consumer<Student>() {
+            @Override
+            public void accept(Student student) throws Exception {
+                log.info("test Map value:{}", student);
+            }
+        });
+    }
+
+    public class Student implements Callable<Student> {
+        //姓名
+        private String name;
+
+        //选修课列表
+        private List<String> courses;
+
+        public Student(String name) {
+            this.name = name;
+        }
+
+        public void setCourses(List<String> courses) {
+            this.courses = courses;
+        }
+
+        @Override
+        public String toString() {
+            return "Student{" +
+                    "name='" + name + '\'' +
+                    ", courses=" + courses +
+                    '}';
+        }
+
+        @Override
+        public Student call() throws Exception {
+            return this;
+        }
+
+    }
+
+    /**
      * Scan连续地对数据序列的每一项应用一个函数，然后对每一项连续发射输出结果
+     * @see "http://reactivex.io/documentation/operators/scan.html"
      */
     @Test
     public void testScan() {
@@ -265,6 +251,23 @@ public class _2TransformingOptTest {
                 });
     }
 
+    /**
+     * Window 定期将来自原始Observable的数据分解为一个Observable窗口，发射这些窗口，而不是每次发射一项数据
+     * 与buffer一样，区别是Window取自Observables对象，但是buffer取得是数据包
+     */
+    @Test
+    public void testWindow() {
+        Observable.just(1, 2, 3, 4, 5, 6)
+                .subscribe(integer -> log.info("===>" + integer));
+
+        //以两个数据项为一个时间窗口进行发射
+        Observable.just(1, 2, 3, 4, 5, 6).
+                window(3).subscribe(integerObservable ->
+        {
+            integerObservable.subscribe(integer -> log.info(integerObservable + "===>" + integer));
+        });
+    }
+//=======
     /**
      * Reduce连续对数据序列每一项应用一个函数，但是区别于Scan，上一次处理的结果作为下一次处理的入参
      */

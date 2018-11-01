@@ -5,6 +5,7 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
@@ -21,6 +22,8 @@ public class _1CreateOptTest {
 
     /**
      * 1-测试创建运算符
+     * create an Observable from scratch by calling observer methods programmatically
+     * @see "http://reactivex.io/documentation/operators/create.html"
      */
     @Test
     public void testCreate() {
@@ -87,34 +90,6 @@ public class _1CreateOptTest {
         });
     }
 
-    /**
-     * 创建一个发射指定值的Observable
-     */
-    @Test
-    public void testJust() {
-        Observable.just(1, 2, 3, 4).subscribe(new Observer<Integer>() {
-            @Override
-            public void onSubscribe(Disposable disposable) {
-
-            }
-
-            @Override
-            public void onNext(Integer integers) {
-                log.info("consumer data:{}", integers);
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                log.info("error:{}", throwable);
-            }
-
-            @Override
-            public void onComplete() {
-                log.info("complete");
-            }
-        });
-    }
-
     public class App {
         private String name;
 
@@ -133,7 +108,7 @@ public class _1CreateOptTest {
     private App mApp = new App("微信");
     /**
      * 直到有观察者订阅时才创建Observable，并且为每个观察者创建一个新的Observable
-     * 懒加载 保证数据是最新鲜的
+     * @see "http://reactivex.io/documentation/operators/defer.html"
      */
     @Test
     public void testDefer() {
@@ -196,8 +171,38 @@ public class _1CreateOptTest {
     }
 
     /**
+     * 创建一个发射指定值的Observable
+     * @see "http://reactivex.io/documentation/operators/just.html"
+     */
+    @Test
+    public void testJust() {
+        Observable.just(1, 2, 3, 4).subscribe(new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable disposable) {
+
+            }
+
+            @Override
+            public void onNext(Integer integers) {
+                log.info("consumer data:{}", integers);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                log.info("error:{}", throwable);
+            }
+
+            @Override
+            public void onComplete() {
+                log.info("complete");
+            }
+        });
+    }
+
+    /**
      * 创建一个不发射任何数据但是正常终止的Observable
      * onNext和onError不会执行,onComplete会执行
+     * @see "http://reactivex.io/documentation/operators/empty-never-throw.html"
      */
     @Test
     public void testEmpty() {
@@ -227,6 +232,7 @@ public class _1CreateOptTest {
     /**
      * 创建一个不发射数据也不终止的Observable
      * onNext和onError和onComplete都不会执行
+     * @see "http://reactivex.io/documentation/operators/empty-never-throw.html"
      */
     @Test
     public void testNever() {
@@ -258,6 +264,7 @@ public class _1CreateOptTest {
     /**
      * 创建一个不发射数据以一个错误终止的Observable
      * onNext和onComplete不会执行,onError会执行
+     * @see "http://reactivex.io/documentation/operators/empty-never-throw.html"
      */
     @Test
     public void testThrow() {
@@ -286,6 +293,7 @@ public class _1CreateOptTest {
 
     /**
      * 将普通的数据变成Observable模式
+     * @see "http://reactivex.io/documentation/operators/from.html"
      */
     @Test
     public void testFrom() {
@@ -341,6 +349,7 @@ public class _1CreateOptTest {
 
     /**
      * 创建一个按固定时间间隔发射整数序列的Observable
+     * @see "http://reactivex.io/documentation/operators/interval.html"
      */
     @Test
     public void testInterval() throws InterruptedException {
@@ -370,6 +379,7 @@ public class _1CreateOptTest {
 
     /**
      * 创建一个发射特定整数序列的Observable
+     * @see "http://reactivex.io/documentation/operators/range.html"
      */
     @Test
     public void testRange() {
@@ -399,6 +409,7 @@ public class _1CreateOptTest {
 
     /**
      * 创建一个发射特定数据重复多次的Observable
+     * @see "http://reactivex.io/documentation/operators/repeat.html"
      */
     @Test
     public void testRepeat() {
@@ -427,17 +438,22 @@ public class _1CreateOptTest {
     }
 
     /**
-     * 返回一个Observable，它发射一个类似于函数声明的值
-     * 它接受一个函数作为参数,调用这个函数获取一个值
-     * 注意:这个函数只会被执行一次,即使多个观察者订阅这个返回的Observable。
+     * 将一个函数转换成observable模式
+     * @see "http://reactivex.io/documentation/operators/start.html"
      */
     @Test
     public void testStart() {
-        //Observable.sta
+        Observable.fromCallable(new Callable<Integer>() {
+            @Override
+            public Integer call() throws Exception {
+                return 1;
+            }
+        }).subscribe(integer -> log.info("result:{}", integer));
     }
 
     /**
      * 创建一个Observable，它在一个给定的延迟后发射一个特殊的值。
+     * @see "http://reactivex.io/documentation/operators/timer.html"
      */
     @Test
     public void testTimer() throws InterruptedException {

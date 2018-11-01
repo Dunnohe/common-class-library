@@ -2,9 +2,16 @@ package common.rxjava2;
 
 import io.reactivex.CompletableObserver;
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class _3FilterOptTest {
@@ -15,7 +22,19 @@ public class _3FilterOptTest {
      */
     @Test
     public void testDebounce() {
+        Observable<Integer> observable = Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                emitter.onNext(1);
+                emitter.onNext(2);
+                emitter.onNext(3);
+                emitter.onComplete();
+            }
+        });
 
+        observable.debounce(10, TimeUnit.SECONDS);
+
+        observable.subscribe(integer -> log.info("result:{}", integer));
     }
 
     /**
@@ -101,7 +120,15 @@ public class _3FilterOptTest {
      */
     @Test
     public void testSample() {
+        Observable<Integer> just1 = Observable.just(1, 2, 3, 4);
+        Observable<String> just2 = Observable.just("bbb", "ccc");
 
+        just1.sample(just2).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer integer) throws Exception {
+                log.info("result:{}", integer);
+            }
+        });
     }
 
     /**
