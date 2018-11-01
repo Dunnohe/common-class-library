@@ -32,19 +32,11 @@ public class _8MathOptTest {
         assertTrue(Observable.just(1, 2, 3, 4).contains(2).blockingGet());
     }
 
-    /**
-     * 上一次处理的结果作为下一次的入参
-     */
     @Test
-    public void testReduce() {
-        String s = Observable.just(1, 2, 3).reduce("", new BiFunction<String, Integer, String>() {
-            @Override
-            public String apply(String s, Integer integer) throws Exception {
-                return s + integer;
-            }
-        }).blockingGet();
+    public void testCount() {
+        long count = (long) Observable.just(1, 2, 3, 4).toList().blockingGet().size();
+        log.info("data:{}", count);
 
-        log.info("data:{}", s);
     }
 
     /**
@@ -63,11 +55,19 @@ public class _8MathOptTest {
 
     }
 
+    /**
+     * 上一次处理的结果作为下一次的入参
+     */
     @Test
-    public void testCount() {
-        long count = (long) Observable.just(1, 2, 3, 4).toList().blockingGet().size();
-        log.info("data:{}", count);
+    public void testReduce() {
+        String s = Observable.just(1, 2, 3).reduce("", new BiFunction<String, Integer, String>() {
+            @Override
+            public String apply(String s, Integer integer) throws Exception {
+                return s + integer;
+            }
+        }).blockingGet();
 
+        log.info("data:{}", s);
     }
 
     @Test

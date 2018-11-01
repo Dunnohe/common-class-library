@@ -24,6 +24,7 @@ public class _10ConnectOptTest {
      * 即使没有任何订阅者订阅它，也可以使用 connect 让他发射
      * <p>
      * Publish:普通的Observable转换为可连接的Observable
+     * @see "http://reactivex.io/documentation/operators/connect.html"
      */
     @Test
     public void testConnectableObservable() {
@@ -68,6 +69,7 @@ public class _10ConnectOptTest {
     /**
      * Replay:每次订阅 都对单个订阅的重复播放一边,保证每个消费者获取的数据序列一致
      * 总是发射完整的数据序列给任何未来的观察者，即使那些观察者在这个Observable开始给其它观察者发射数据之后才订阅
+     * @see "http://reactivex.io/documentation/operators/replay.html"
      */
     @Test
     public void testReplay() throws InterruptedException {

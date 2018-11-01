@@ -14,45 +14,6 @@ import java.util.concurrent.TimeUnit;
 public class _4CombiningOptTest {
 
     /**
-     * 它们会在原来的 Completable 结束后执行
-     * 顺序执行多个Completable
-     */
-    @Test
-    public void testAndThen() {
-        // Completable可以看成是runnable
-        Completable hello_world = Completable.fromAction(new Action() {
-            @Override
-            public void run() throws Exception {
-                log.info("hello world");
-            }
-        });
-        hello_world.andThen((SingleSource<Object>) singleObserver -> log.info("Hi,how are you!")).subscribe();
-    }
-
-    /**
-     * 当出现某个条件的时候就触发
-     * 需要一个Observable 通过判断 throwableObservable,Observable发射一个数据 就重新订阅，发射的是 onError 通知，
-     * 它就将这个通知传递给观察者然后终止。
-     * todo
-     */
-    @Test
-    public void testRetryWhen() {
-        Observable.just(1, "2", 3)
-                .cast(Integer.class)
-                .retryWhen(throwableObservable -> {
-                    return throwableObservable.switchMap(throwable -> {
-                        if (throwable instanceof ClassCastException) {
-                            return Observable.just(4, 5, 6);
-                        }
-                        return Observable.empty();
-                    });
-                })
-                .subscribe(o -> log.info("test retry when value:{}", o),
-                        throwable -> log.error("test retry when error:", throwable));
-
-    }
-
-    /**
      * 当两个Observables中的任何一个发射了数据时，使用一个函数结合每个Observable发射的最近数据项，并且基于这个函数的结果发射数据。
      * 你的最新的和我的最新的合并
      * @See https://mcxiaoke.gitbooks.io/rxdocs/content/operators/CombineLatest.html

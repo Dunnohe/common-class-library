@@ -2,20 +2,40 @@ package common.rxjava2;
 
 import io.reactivex.CompletableObserver;
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class _3FilterOptTest {
 
     /**
      * 仅在过了一段指定的时间还没发射数据时才发射一个数据
-     * todo
      */
     @Test
-    public void testDebounce() {
+    public void testDebounce() throws InterruptedException {
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                for (int i = 0; i < 12; i++) {
+                    emitter.onNext(i);
+                    Thread.sleep(1000);
+                }
+                emitter.onComplete();
+            }
+        }).subscribeOn(Schedulers.io())
+            .debounce(5, TimeUnit.SECONDS)
+            .subscribe(integer -> log.info("result:{}", integer));
 
+        Thread.sleep(10000);
     }
 
     /**
@@ -97,11 +117,22 @@ public class _3FilterOptTest {
 
     /**
      * 定期发射Observable最近发射的数据项
-     * todo
+     * 定期去取数据最新的数据
      */
     @Test
-    public void testSample() {
-
+    public void testSample() throws InterruptedException {
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                for (int i = 0; i < 12; i++) {
+                    emitter.onNext(i);
+                    Thread.sleep(1000);
+                }
+                emitter.onComplete();
+            }
+        }).subscribeOn(Schedulers.io())
+                .sample(2, TimeUnit.SECONDS).subscribe(integer -> log.info("data:{}", integer));
+        Thread.sleep(10000);
     }
 
     /**
