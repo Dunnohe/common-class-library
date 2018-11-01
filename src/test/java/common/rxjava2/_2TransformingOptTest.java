@@ -267,42 +267,5 @@ public class _2TransformingOptTest {
             integerObservable.subscribe(integer -> log.info(integerObservable + "===>" + integer));
         });
     }
-//=======
-    /**
-     * Reduce连续对数据序列每一项应用一个函数，但是区别于Scan，上一次处理的结果作为下一次处理的入参
-     */
-    @Test
-    public void testReduce() {
-        Observable.just(1, 2, 3, 4, 5, 6).
-                reduce(new BiFunction<Integer, Integer, Integer>() {
-                    @Override
-                    public Integer apply(Integer integer, Integer integer2) throws Exception {
-                        return integer + integer2;
-                    }
-                }).
-                subscribe(new Consumer<Integer>() {
-                    @Override
-                    public void accept(Integer integer) throws Exception {
-                        log.info("test reduce value:{}", integer);
-                    }
-                });
-    }
-
-    /**
-     * toFuture 这个操作符将Observable转换为一个返回[单]个数据项的Future
-     * 如果原始Observable发射多个数据项，toList().toFuture().get()
-     * 如果原始Observable没有发射任何数据，Future会收到一个NoSuchElementException
-     */
-    @Test
-    public void testToFuture() throws ExecutionException, InterruptedException {
-        Integer onlyFuture = Observable.just(1).toFuture().get();
-        log.info("test to future value:{}", onlyFuture);
-
-        List<Integer> moreFuture = Observable.just(1, 2, 3, 4).toList().toFuture().get();
-        log.info("test to future values:{}", moreFuture);
-
-        thrown.expect(ExecutionException.class);
-        Observable.empty().toFuture().get();
-    }
 
 }

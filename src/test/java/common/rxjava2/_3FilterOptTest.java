@@ -8,6 +8,7 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
@@ -18,23 +19,23 @@ public class _3FilterOptTest {
 
     /**
      * 仅在过了一段指定的时间还没发射数据时才发射一个数据
-     * todo
      */
     @Test
-    public void testDebounce() {
-        Observable<Integer> observable = Observable.create(new ObservableOnSubscribe<Integer>() {
+    public void testDebounce() throws InterruptedException {
+        Observable.create(new ObservableOnSubscribe<Integer>() {
             @Override
             public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
-                emitter.onNext(1);
-                emitter.onNext(2);
-                emitter.onNext(3);
+                for (int i = 0; i < 12; i++) {
+                    emitter.onNext(i);
+                    Thread.sleep(1000);
+                }
                 emitter.onComplete();
             }
-        });
+        }).subscribeOn(Schedulers.io())
+            .debounce(5, TimeUnit.SECONDS)
+            .subscribe(integer -> log.info("result:{}", integer));
 
-        observable.debounce(10, TimeUnit.SECONDS);
-
-        observable.subscribe(integer -> log.info("result:{}", integer));
+        Thread.sleep(10000);
     }
 
     /**
@@ -116,19 +117,22 @@ public class _3FilterOptTest {
 
     /**
      * 定期发射Observable最近发射的数据项
-     * todo
+     * 定期去取数据最新的数据
      */
     @Test
-    public void testSample() {
-        Observable<Integer> just1 = Observable.just(1, 2, 3, 4);
-        Observable<String> just2 = Observable.just("bbb", "ccc");
-
-        just1.sample(just2).subscribe(new Consumer<Integer>() {
+    public void testSample() throws InterruptedException {
+        Observable.create(new ObservableOnSubscribe<Integer>() {
             @Override
-            public void accept(Integer integer) throws Exception {
-                log.info("result:{}", integer);
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                for (int i = 0; i < 12; i++) {
+                    emitter.onNext(i);
+                    Thread.sleep(1000);
+                }
+                emitter.onComplete();
             }
-        });
+        }).subscribeOn(Schedulers.io())
+                .sample(2, TimeUnit.SECONDS).subscribe(integer -> log.info("data:{}", integer));
+        Thread.sleep(10000);
     }
 
     /**
