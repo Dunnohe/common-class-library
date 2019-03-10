@@ -81,7 +81,10 @@ public class ZookeeperDemo {
     /**
      * 权限控制
      * add auth info 方法中的scheme相当于权限控制模式：world、auth、digest、ip、super auth:具体的权限信息 在这里相当于秘钥
-     *
+     * world：默认方式，相当于全世界都能访问
+     * auth：代表已经认证通过的用户(cli中可以通过addauth digest user:pwd 来添加当前上下文中的授权用户)
+     * digest：即用户名:密码这种方式认证，这也是业务系统中最常用的
+     * ip:使用IP地址的方式进行访问
      * @return
      */
     public boolean accessControl() {
