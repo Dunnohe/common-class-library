@@ -6,14 +6,22 @@ import static org.junit.Assert.*;
 
 public class ZookeeperDemoTest {
 
+
     private ZookeeperDemo zookeeperDemo = new ZookeeperDemo();
 
     @Test
     public void createSession() throws Exception {
+        boolean create = zookeeperDemo.createSession();
+        assertTrue(create);
+    }
 
-        boolean session = zookeeperDemo.createSession();
+    @Test
+    public void createDataNode() throws Exception {
 
-        assertTrue(session);
+        zookeeperDemo.createSession();
+
+        zookeeperDemo.createDataNode("/test");
+
     }
 
 }
