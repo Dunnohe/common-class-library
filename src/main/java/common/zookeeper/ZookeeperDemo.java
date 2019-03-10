@@ -2,6 +2,7 @@ package common.zookeeper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.Stat;
 
 import java.util.List;
 
@@ -53,6 +54,87 @@ public class ZookeeperDemo {
         }
 
         return false;
+    }
+
+    /**
+     * 创建数据节点
+     */
+    public void createDataNode(String dataPath, String value) throws InterruptedException {
+
+        AsyncCallback.StringCallback stringCallback = (rc, path, ctx, name) -> {
+            /*
+             * rc:result code[0:ok -4:ConnectionLoss -110:NodeExists -112:SessionExpired ]
+             * path:接口调用时传入api的数据节点的节点路径参数值
+             * ctx:接入调用时传入api的上下文
+             * name:实际在节点创建的参数名
+             */
+            log.info("zookeeper create data node callback, rc:{}, path:{}, ctx:{}, name:{}", rc, path, ctx, name);
+        };
+
+        /*
+         * path:创建的数据节点的路径
+         * data[]:一个字节数组，是节点之后创建的内容
+         * acl:节点的acl策略
+         * createMode:节点类型[持久，持久顺序，临时，临时顺序]
+         * cb:注册回调接口
+         * ctx:上下文
+         */
+        zooKeeper.create(dataPath, value.getBytes(),
+                ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, stringCallback, "I'm context");
+
+        Thread.sleep(3000);
+    }
+
+    /**
+     * 删除节点信息
+     * @param dataPath 节点path
+     * @param version 节点version
+     */
+    public void deleteDataNode(String dataPath, int version) throws InterruptedException {
+        AsyncCallback.VoidCallback voidCallback = (rc, path, ctx)
+                -> log.info("zookeeper delete data node callback, rc:{}, path:{}, ctx:{}", rc, path, ctx);
+        zooKeeper.delete(dataPath, version, voidCallback, "i'm a context");
+        Thread.sleep(3000);
+
+    }
+
+    /**
+     * 查看节点信息
+     * @param dataPath 节点path
+     * @throws KeeperException
+     * @throws InterruptedException
+     */
+    public void listDataNode(String dataPath) throws KeeperException, InterruptedException {
+        List<String> children = zooKeeper.getChildren(dataPath, true);
+        log.info("zookeeper query data node result:{}", children);
+    }
+
+    /**
+     * 查看节点信息
+     * @param dataPath 节点path
+     * @param stat stat
+     * @throws KeeperException
+     * @throws InterruptedException
+     */
+    public byte[] getDateNode(String dataPath, Stat stat) throws KeeperException, InterruptedException {
+        log.info("before get data, dataPath:{}, stat:{}", dataPath, stat);
+        byte[] data = zooKeeper.getData(dataPath, true, stat);
+        log.info("after get data, dataPath:{}, stat:{}, data:{}", dataPath, stat, new String(data));
+        return data;
+    }
+
+    /**
+     * 更新节点信息
+     * @param dataPath 节点path
+     * @param value 节点value
+     * @param version 节点版本
+     */
+    public void updateDataNode(String dataPath, String value, int version) {
+        AsyncCallback.StatCallback statCallback = (rc, path, ctx, stat)
+                -> log.info("zookeeper update data node callback, rc:{}, path:{}, ctx:{}, stat:{}", rc, path, ctx, stat);
+
+        zooKeeper.setData(dataPath, value.getBytes(), version, statCallback, "I'm a update context");
+
     }
 
     /**
@@ -134,56 +216,6 @@ public class ZookeeperDemo {
             log.error("access control is error,e=", e);
         }
         return false;
-    }
-
-    /**
-     * 创建数据节点
-     */
-    public void createDataNode(String dataPath) throws InterruptedException {
-
-        AsyncCallback.StringCallback stringCallback = (rc, path, ctx, name) -> {
-            /*
-             * rc:result code[0:ok -4:ConnectionLoss 110:NodeExists -112:SessionExpired ]
-             * path:接口调用时传入api的数据节点的节点路径参数值
-             * ctx:接入调用时传入api的上下文
-             * name:实际在节点创建的参数名
-             */
-            log.info("zookeeper create data node callback, rc:{}, path:{}, ctx:{}, name:{}", rc, path, ctx, name);
-        };
-
-        /*
-         * path:创建的数据节点的路径
-         * data[]:一个字节数组，是节点之后创建的内容
-         * acl:节点的acl策略
-         * createMode:节点类型[持久，持久顺序，临时，临时顺序]
-         * cb:注册回调接口
-         * ctx:上下文
-         */
-        zooKeeper.create(dataPath, "hello".getBytes(),
-                ZooDefs.Ids.READ_ACL_UNSAFE, CreateMode.PERSISTENT, stringCallback, "I'm context");
-
-        Thread.sleep(1000000);
-
-    }
-
-    public void deleteDataNode(String dataPath, int version) {
-        AsyncCallback.VoidCallback voidCallback = (rc, path, ctx)
-                -> log.info("zookeeper delete data node callback, rc:{}, path:{}, ctx:{}", rc, path, ctx);
-        zooKeeper.delete(dataPath, version, voidCallback, "i'm a context");
-
-    }
-
-    public void listDataNode(String dataPath) throws KeeperException, InterruptedException {
-        List<String> children = zooKeeper.getChildren(dataPath, true);
-        log.info("zookeeper query data node result:{}", children);
-    }
-
-    public void updateDataNode(String dataPath, String value, int version) {
-        AsyncCallback.StatCallback statCallback = (rc, path, ctx, stat)
-                -> log.info("zookeeper update data node callback, rc:{}, path:{}, ctx:{}, stat:{}", rc, path, ctx, stat);
-
-        zooKeeper.setData(dataPath, value.getBytes(), version, statCallback, "I'm a update context");
-
     }
 
 
