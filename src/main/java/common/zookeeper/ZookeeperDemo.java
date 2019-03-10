@@ -87,6 +87,7 @@ public class ZookeeperDemo {
      * auth：代表已经认证通过的用户(cli中可以通过addauth digest user:pwd 来添加当前上下文中的授权用户)
      * digest：即用户名:密码这种方式认证，这也是业务系统中最常用的
      * ip:使用IP地址的方式进行访问
+     *
      * @return
      */
     public boolean accessControl() {
@@ -112,7 +113,7 @@ public class ZookeeperDemo {
             trueAuthZookeeper.addAuthInfo("digest", "foo:true".getBytes());
             Thread.sleep(1000);
             try {
-                String data = trueAuthZookeeper.getData(PATH, WATCHER, null).toString();
+                String data = new String(trueAuthZookeeper.getData(PATH, WATCHER, null));
                 log.info("true auth get data:{}", data);
             } catch (Exception e) {
                 log.info("true auth zookeeper get data,e=", e);
