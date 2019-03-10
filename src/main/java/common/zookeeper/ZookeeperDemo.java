@@ -95,17 +95,33 @@ public class ZookeeperDemo {
             ZooKeeper errorAuthZookeeper = new ZooKeeper(serverAddress, timeout, WATCHER);
             errorAuthZookeeper.addAuthInfo("digest", "foo:false".getBytes());
             Thread.sleep(1000);
-            log.info("error auth zookeeper get data,message:{}", errorAuthZookeeper.getData(PATH, WATCHER, null));
+            try {
+                String data = errorAuthZookeeper.getData(PATH, WATCHER, null).toString();
+                log.info("error auth zookeeper get data:{}", data);
+            } catch (Exception e) {
+                log.error("error auth zookeeper get data,e=", e);
+            }
 
             //授权正确的值进行访问
             ZooKeeper trueAuthZookeeper = new ZooKeeper(serverAddress, timeout, WATCHER);
             trueAuthZookeeper.addAuthInfo("digest", "foo:true".getBytes());
             Thread.sleep(1000);
-            log.info("true auth zookeeper get data,message:{}", trueAuthZookeeper.getData(PATH, WATCHER, null));
+            try {
+                String data = trueAuthZookeeper.getData(PATH, WATCHER, null).toString();
+                log.info("true auth get data:{}", data);
+            } catch (Exception e) {
+                log.info("true auth zookeeper get data,e=", e);
+            }
 
             //没有授权进行访问
             ZooKeeper noAuthZooKeeper = new ZooKeeper(serverAddress, timeout, WATCHER);
-            log.info("no auth zookeeper get data,message:{}", noAuthZooKeeper.getData(PATH, WATCHER, null));
+            Thread.sleep(1000);
+            try {
+                String data = noAuthZooKeeper.getData(PATH, WATCHER, null).toString();
+                log.info("no auth get data:{}", data);
+            } catch (Exception e) {
+                log.info("no auth zookeeper get data,e=", e);
+            }
 
             return true;
         } catch (Exception e) {
