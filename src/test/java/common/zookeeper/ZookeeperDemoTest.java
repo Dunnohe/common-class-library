@@ -73,8 +73,8 @@ public class ZookeeperDemoTest {
      */
     @Test
     public void recoverSession() {
-        boolean result = zookeeperDemo.recoverSession();
-        assertTrue(result);
+        zookeeperDemo.createSession();
+        zookeeperDemo.recoverSession();
     }
 
     /**

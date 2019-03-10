@@ -13,7 +13,7 @@ public class ZookeeperDemo {
     private byte[] password;
     private ZooKeeper zooKeeper;
     private String serverAddress = "127.0.0.1:2181";
-    private int timeout = 5000;
+    private int timeout = 20000;
 
 
     private static final Watcher WATCHER = watchedEvent -> {
@@ -145,15 +145,16 @@ public class ZookeeperDemo {
      */
     public boolean recoverSession() {
         try {
-            log.info("before reuse zookeeper session,status:{}", zooKeeper.getState());
 
-            zooKeeper = new ZooKeeper(serverAddress, timeout, WATCHER, 1, "test".getBytes());
-            Thread.sleep(1000);
-            log.info("illegal zookeeper session,status:{}", zooKeeper.getState());
+            log.info("origin zookeeper session id:{}, pwd:{}", zooKeeper.getSessionId(), zooKeeper.getSessionPasswd());
 
-            zooKeeper = new ZooKeeper(serverAddress, timeout, WATCHER, sessionId, password);
+            ZooKeeper recover = new ZooKeeper(serverAddress, timeout, WATCHER, sessionId, password);
             Thread.sleep(1000);
-            log.info("after reuse zookeeper session, status:{}", zooKeeper.getState());
+            log.info("recover zookeeper session, id:{}, pwd:{}", recover.getSessionId(), recover.getSessionPasswd());
+
+            ZooKeeper newClient = new ZooKeeper(serverAddress, timeout, WATCHER, 1, "test".getBytes());
+            Thread.sleep(1000);
+            log.info("new zookeeper session, id:{}, pwd:{}", newClient.getSessionId(), newClient.getSessionPasswd());
 
             return true;
         } catch (Exception e) {
@@ -216,6 +217,10 @@ public class ZookeeperDemo {
             log.error("access control is error,e=", e);
         }
         return false;
+    }
+
+    public void close() throws InterruptedException {
+        zooKeeper.close();
     }
 
 
