@@ -11,7 +11,7 @@ public class _10RateLimit {
     @Test
     public void test() {
         for (int i = 0; i < 10; i++) {
-            //rateLimiter.acquire();
+            rateLimiter.acquire();
             System.out.println("task exec, number:" + i);
         }
     }
